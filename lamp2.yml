@@ -1,0 +1,79 @@
+---
+- hosts: web1
+   become: true
+   vars:
+     ad: "apache2"
+     ar: "httpd"
+     md: "mysql-server"
+     pd: "php"
+     pmd: "php-mysql"
+     ed1: "libapache2-mod-php"
+     ed2: "php-mcrypt"
+     ed3: "unzip"
+   tasks:
+    - name: Installing debian  Machines
+      apt: pkg={{ item }} state=present update_cache=yes
+      with_items:
+       - "{{ ad }}"
+       - "{{ md }}"
+       - "{{ pd }}"
+       - "{{ pmd }}"
+       - "{{ ed1 }}"
+       - "{{ ed2 }}"
+       - "{{ ed3 }}"
+      when: ansible_os_family == "Debian"
+    - name: Installing Redhat Machines
+      yum:
+         name:{{ item }}
+         state:present
+      with_items:
+       - "{{ ar }}"
+       - "{{ md }}"
+       - "{{ pd }}"
+       - "{{ pmd }}"
+       - "{{ ed3 }}"
+        when: ansible_os_family == "Debian"
+    - name: Installing Redhat Machines
+      yum:
+         name:{{ item }}
+         state:present
+      with_items:
+       - "{{ ar }}"
+       - "{{ md }}"
+       - "{{ pd }}"
+       - "{{ pmd }}"
+       - "{{ ed3 }}"
+      when: ansible_os_family == "Redhat"
+
+
+    - name: Download html
+      get_url:
+        url: https://www.free-css.com/assets/files/free-css-templates/download/page247/dart-blog.zip
+        dest: /tmp/dart-blog.zip
+    - name: UnZip
+      unarchive:
+        src: /tmp/dart-blog.zip
+        dest: /tmp/
+        remote_src: yes
+    - name: UnZip2
+      unarchive:
+        src: /tmp/5919-dart-blog-html/dart-blog-html.zip
+        dest: /tmp/
+        remote_src: yes
+    - name: Copy html
+      copy:
+        src: /tmp/dart-blog-html/
+        dest: /var/www/html/
+        remote_src: yes
+      notify:
+       - Debian
+       - Redhat
+
+
+   handlers:
+    - name: Debian
+      service: name=apache2 state=restarted
+      when: ansible_os_family == "Debian"
+    - name: Redhat
+      service: name=httpd state=restarted
+      when: ansible_os_family == "Redhat"
